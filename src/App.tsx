@@ -19,6 +19,8 @@ export default function App() {
     setExerciseSearch,
     isolationOnly,
     setIsolationOnly,
+    allSelectedMusclesOnly,
+    setAllSelectedMusclesOnly,
     selectedMuscleIds,
     setSelectedMuscleIds,
     selectedExerciseId,
@@ -44,6 +46,12 @@ export default function App() {
       setIsolationOnly(false);
     }
   }, [isolationOnly, selectedMuscleIds, setIsolationOnly]);
+
+  useEffect(() => {
+    if (selectedMuscleIds.size <= 1 && allSelectedMusclesOnly) {
+      setAllSelectedMusclesOnly(false);
+    }
+  }, [allSelectedMusclesOnly, selectedMuscleIds, setAllSelectedMusclesOnly]);
 
   const toggleMuscle = (muscleId: string) => {
     const wasSelected = selectedMuscleIds.has(muscleId);
@@ -124,6 +132,7 @@ export default function App() {
                   setMuscleSearch('');
                   setExerciseSearch('');
                   setIsolationOnly(false);
+                  setAllSelectedMusclesOnly(false);
                 }}
               >
                 Сбросить фильтры
@@ -174,6 +183,8 @@ export default function App() {
               search={exerciseSearch}
               isolationOnly={isolationOnly}
               onIsolationOnlyChange={setIsolationOnly}
+              allSelectedMusclesOnly={allSelectedMusclesOnly}
+              onAllSelectedMusclesOnlyChange={setAllSelectedMusclesOnly}
               onSearchChange={setExerciseSearch}
               onSelectExercise={setSelectedExerciseId}
               onShowExerciseMuscles={showExerciseMuscles}

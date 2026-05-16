@@ -23,6 +23,8 @@ interface ExerciseListProps {
   search: string;
   isolationOnly: boolean;
   onIsolationOnlyChange: (nextValue: boolean) => void;
+  allSelectedMusclesOnly: boolean;
+  onAllSelectedMusclesOnlyChange: (nextValue: boolean) => void;
   onSearchChange: (value: string) => void;
   onSelectExercise: (exerciseId: string) => void;
   onShowExerciseMuscles: (muscleIds: string[]) => void;
@@ -36,12 +38,15 @@ export function ExerciseList({
   search,
   isolationOnly,
   onIsolationOnlyChange,
+  allSelectedMusclesOnly,
+  onAllSelectedMusclesOnlyChange,
   onSearchChange,
   onSelectExercise,
   onShowExerciseMuscles,
 }: ExerciseListProps) {
   const visibleMuscles = muscles.filter((muscle) => selectedMuscleIds.has(muscle.id));
   const canUseIsolationFilter = selectedMuscleIds.size === 1;
+  const canUseAllSelectedFilter = selectedMuscleIds.size > 1;
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
@@ -68,6 +73,13 @@ export function ExerciseList({
           <FormControlLabel
             control={<Checkbox checked={isolationOnly} onChange={(event) => onIsolationOnlyChange(event.target.checked)} />}
             label="Только изолирующие упражнения"
+          />
+        )}
+
+        {canUseAllSelectedFilter && (
+          <FormControlLabel
+            control={<Checkbox checked={allSelectedMusclesOnly} onChange={(event) => onAllSelectedMusclesOnlyChange(event.target.checked)} />}
+            label="Только упражнения со всеми выбранными мышцами"
           />
         )}
 

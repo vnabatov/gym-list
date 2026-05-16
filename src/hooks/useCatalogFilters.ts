@@ -7,12 +7,17 @@ const normalize = (value: string) => value.trim().toLocaleLowerCase('ru-RU');
 
 const includesText = (haystack: string, needle: string) => normalize(haystack).includes(needle);
 
-const exerciseMatchesMuscles = (exercise: Exercise, selectedMuscleIds: Set<string>) => {
+const exerciseMatchesMuscles = (exercise: Exercise, selectedMuscleIds: Set<string>, allSelectedMusclesOnly: boolean) => {
   if (selectedMuscleIds.size === 0) {
     return true;
   }
 
   const allMuscles = [...exercise.primaryMuscles, ...exercise.secondaryMuscles];
+
+  if (allSelectedMusclesOnly && selectedMuscleIds.size > 1) {
+    return [...selectedMuscleIds].every((muscleId) => allMuscles.includes(muscleId));
+  }
+
   return allMuscles.some((muscleId) => selectedMuscleIds.has(muscleId));
 };
 
@@ -20,6 +25,7 @@ export function useCatalogFilters() {
   const [muscleSearch, setMuscleSearch] = useState('');
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [isolationOnly, setIsolationOnly] = useState(false);
+  const [allSelectedMusclesOnly, setAllSelectedMusclesOnly] = useState(false);
   const [selectedMuscleIds, setSelectedMuscleIds] = useState<Set<string>>(new Set());
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(exercises[0]?.id ?? null);
   const [bodyView, setBodyView] = useState<'front' | 'back'>('front');
@@ -40,7 +46,7 @@ export function useCatalogFilters() {
     const query = normalize(exerciseSearch);
 
     return exercises
-      .filter((exercise) => exerciseMatchesMuscles(exercise, selectedMuscleIds))
+      .filter((exercise) => exerciseMatchesMuscles(exercise, selectedMuscleIds, allSelectedMusclesOnly))
       .filter((exercise) => (isolationOnly ? exercise.isIsolation : true))
       .filter((exercise) => {
         if (!query) {
@@ -69,7 +75,7 @@ export function useCatalogFilters() {
 
         return score(right) - score(left) || left.nameRu.localeCompare(right.nameRu, 'ru');
       });
-  }, [exerciseSearch, isolationOnly, selectedMuscleIds]);
+  }, [allSelectedMusclesOnly, exerciseSearch, isolationOnly, selectedMuscleIds]);
 
   const selectedExercise = useMemo(
     () => visibleExercises.find((exercise) => exercise.id === selectedExerciseId) ?? visibleExercises[0] ?? null,
@@ -85,6 +91,8 @@ export function useCatalogFilters() {
     setExerciseSearch,
     isolationOnly,
     setIsolationOnly,
+    allSelectedMusclesOnly,
+    setAllSelectedMusclesOnly,
     selectedMuscleIds,
     setSelectedMuscleIds,
     selectedExerciseId,
