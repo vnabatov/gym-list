@@ -33,7 +33,7 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ height: '100%', minHeight: 0 }}>
         <Box>
           <Typography variant="h6" gutterBottom>
             Мышцы
@@ -80,7 +80,7 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
 
         <Divider />
 
-        <Box sx={{ maxHeight: { xs: 360, lg: 'calc(100vh - 220px)' }, overflow: 'auto', pr: 0.5 }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflow: 'auto', pr: 0.5 }}>
           {Object.entries(grouped).map(([groupName, items]) => (
             <Box key={groupName} sx={{ mb: 2 }}>
               <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1 }}>

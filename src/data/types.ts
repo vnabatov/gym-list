@@ -15,6 +15,7 @@ export interface Exercise {
   nameRu: string;
   aliases: string[];
   categoryRu: string;
+  isIsolation?: boolean;
   equipmentRu: string;
   difficultyRu: string;
   descriptionRu: string;

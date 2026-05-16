@@ -15,12 +15,13 @@
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-muscle-highlighter": "^1.2.0"
   },
   "devDependencies": {
+    "@types/node": "^22.15.29",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "@types/node": "^22.15.29",
     "@vitejs/plugin-react": "^5.0.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"

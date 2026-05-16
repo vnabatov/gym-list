@@ -1,15 +1,17 @@
 import { Box, Divider, Link, Paper, Stack, Typography } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material/styles';
 import type { Exercise, Muscle } from '../data/types';
 
 interface ExerciseDetailsProps {
   exercise: Exercise | null;
   muscles: Muscle[];
+  sx?: SxProps<Theme>;
 }
 
-export function ExerciseDetails({ exercise, muscles }: ExerciseDetailsProps) {
+export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps) {
   if (!exercise) {
     return (
-      <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider' }}>
+      <Paper elevation={0} sx={[{ p: 2.25, border: 1, borderColor: 'divider', overflow: 'auto' }, ...(Array.isArray(sx) ? sx : [sx])]}>
         <Typography variant="h6" gutterBottom>
           Описание упражнения
         </Typography>
@@ -25,7 +27,7 @@ export function ExerciseDetails({ exercise, muscles }: ExerciseDetailsProps) {
     .filter((muscle): muscle is Muscle => Boolean(muscle));
 
   return (
-    <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider' }}>
+    <Paper elevation={0} sx={[{ p: 2.25, border: 1, borderColor: 'divider', overflow: 'auto' }, ...(Array.isArray(sx) ? sx : [sx])]}>
       <Stack spacing={2}>
         <Box>
           <Typography variant="h6" gutterBottom>

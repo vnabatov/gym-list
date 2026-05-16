@@ -17,6 +17,8 @@ export default function App() {
     setMuscleSearch,
     exerciseSearch,
     setExerciseSearch,
+    isolationOnly,
+    setIsolationOnly,
     selectedMuscleIds,
     setSelectedMuscleIds,
     selectedExerciseId,
@@ -49,8 +51,29 @@ export default function App() {
     });
   };
 
+  const toggleMuscleGroup = (muscleIds: string[]) => {
+    if (muscleIds.length === 0) {
+      return;
+    }
+
+    setSelectedMuscleIds((current) => {
+      const next = new Set(current);
+      const allSelected = muscleIds.every((id) => next.has(id));
+
+      muscleIds.forEach((id) => {
+        if (allSelected) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+      });
+
+      return next;
+    });
+  };
+
   return (
-    <Box sx={{ minHeight: '100vh', py: { xs: 2, md: 3 }, background: 'linear-gradient(180deg, #eaf3f5 0%, #f7fafc 35%, #f4f7f9 100%)' }}>
+    <Box sx={{ minHeight: '100dvh', py: { xs: 2, md: 3 }, background: 'linear-gradient(180deg, #eaf3f5 0%, #f7fafc 35%, #f4f7f9 100%)' }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, md: 3 } }}>
         <Stack spacing={2.5} sx={{ mb: 3 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} justifyContent="space-between">
@@ -74,6 +97,7 @@ export default function App() {
                   setSelectedMuscleIds(new Set());
                   setMuscleSearch('');
                   setExerciseSearch('');
+                  setIsolationOnly(false);
                 }}
               >
                 Сбросить фильтры
@@ -95,9 +119,10 @@ export default function App() {
             gap: 2.5,
             gridTemplateColumns: { xs: '1fr', xl: 'minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 1.1fr)' },
             alignItems: 'stretch',
+            height: { xs: 'auto', xl: 'calc(100dvh - 236px)' },
           }}
         >
-          <Box>
+          <Box sx={{ minHeight: 0 }}>
             <MuscleList
               muscles={filteredMuscles}
               selectedMuscleIds={selectedMuscleIds}
@@ -107,28 +132,30 @@ export default function App() {
             />
           </Box>
 
-          <Box>
+          <Box sx={{ minHeight: 0 }}>
             <BodyDiagram
               muscles={muscles}
               selectedMuscleIds={selectedMuscleIds}
               view={bodyView}
               onViewChange={setBodyView}
-              onToggleMuscle={toggleMuscle}
+              onToggleMuscles={toggleMuscleGroup}
             />
           </Box>
 
-          <Box>
-            <Stack spacing={2.5}>
+          <Box sx={{ minHeight: 0 }}>
+            <Stack spacing={2.5} sx={{ height: '100%', minHeight: 0 }}>
               <ExerciseList
                 exercises={visibleExercises}
                 muscles={muscles}
                 selectedMuscleIds={selectedMuscleIds}
                 selectedExerciseId={selectedExerciseId}
                 search={exerciseSearch}
+                isolationOnly={isolationOnly}
+                onIsolationOnlyChange={setIsolationOnly}
                 onSearchChange={setExerciseSearch}
                 onSelectExercise={setSelectedExerciseId}
               />
-              <ExerciseDetails exercise={selectedExercise} muscles={muscles} />
+              <ExerciseDetails exercise={selectedExercise} muscles={muscles} sx={{ flexShrink: 0, maxHeight: { xs: 320, xl: '40%' } }} />
             </Stack>
           </Box>
         </Box>

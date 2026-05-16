@@ -1,7 +1,9 @@
 import {
   Box,
+  Checkbox,
   Chip,
   Divider,
+  FormControlLabel,
   List,
   ListItemButton,
   ListItemText,
@@ -19,6 +21,8 @@ interface ExerciseListProps {
   selectedMuscleIds: Set<string>;
   selectedExerciseId: string | null;
   search: string;
+  isolationOnly: boolean;
+  onIsolationOnlyChange: (nextValue: boolean) => void;
   onSearchChange: (value: string) => void;
   onSelectExercise: (exerciseId: string) => void;
 }
@@ -29,6 +33,8 @@ export function ExerciseList({
   selectedMuscleIds,
   selectedExerciseId,
   search,
+  isolationOnly,
+  onIsolationOnlyChange,
   onSearchChange,
   onSelectExercise,
 }: ExerciseListProps) {
@@ -36,7 +42,7 @@ export function ExerciseList({
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ height: '100%', minHeight: 0 }}>
         <Box>
           <Typography variant="h6" gutterBottom>
             Упражнения
@@ -55,6 +61,11 @@ export function ExerciseList({
           onChange={(event) => onSearchChange(event.target.value)}
         />
 
+        <FormControlLabel
+          control={<Checkbox checked={isolationOnly} onChange={(event) => onIsolationOnlyChange(event.target.checked)} />}
+          label="Только изолирующие упражнения"
+        />
+
         {visibleMuscles.length > 0 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {visibleMuscles.map((muscle) => (
@@ -70,7 +81,7 @@ export function ExerciseList({
 
         <Divider />
 
-        <Box sx={{ maxHeight: { xs: 380, lg: 'calc(100vh - 260px)' }, overflow: 'auto', pr: 0.5 }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflow: 'auto', pr: 0.5 }}>
           {exercises.length === 0 ? (
             <Typography color="text.secondary">Ничего не найдено. Попробуйте другой запрос или снимите фильтр мышц.</Typography>
           ) : (
@@ -95,7 +106,7 @@ export function ExerciseList({
                       secondary={
                         <Stack spacing={0.75} sx={{ mt: 0.5 }}>
                           <Typography variant="body2" color="text.secondary">
-                            {exercise.categoryRu} · {exercise.equipmentRu} · {exercise.difficultyRu}
+                            {exercise.categoryRu}{exercise.isIsolation ? ' (изоляция)' : ''} · {exercise.equipmentRu} · {exercise.difficultyRu}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             {exercise.descriptionRu}
