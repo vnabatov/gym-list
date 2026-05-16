@@ -27,18 +27,25 @@ export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps)
     .map((muscleId) => muscles.find((muscle) => muscle.id === muscleId))
     .filter((muscle): muscle is Muscle => Boolean(muscle));
 
-  const [reference, setReference] = useState<{ labelRu: string; url: string }>({
+  const fallbackReference = {
     labelRu: 'Поиск техники в Google',
     url: `https://www.google.com/search?q=${encodeURIComponent(`${exercise.nameRu} техника`)}`,
+  };
+
+  const [reference, setReference] = useState<{ labelRu: string; url: string }>({
+    labelRu: exercise.reference?.labelRu ?? fallbackReference.labelRu,
+    url: exercise.reference?.url ?? fallbackReference.url,
   });
 
   useEffect(() => {
     let cancelled = false;
 
-    const fallbackReference = {
-      labelRu: 'Поиск техники в Google',
-      url: `https://www.google.com/search?q=${encodeURIComponent(`${exercise.nameRu} техника`)}`,
-    };
+    if (exercise.reference) {
+      setReference(exercise.reference);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const resolveReference = async () => {
       try {
@@ -85,7 +92,7 @@ export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps)
     return () => {
       cancelled = true;
     };
-  }, [exercise.id, exercise.nameRu]);
+  }, [exercise.id, exercise.nameRu, exercise.reference, fallbackReference.labelRu, fallbackReference.url]);
 
   return (
     <Paper elevation={0} sx={[{ p: 2.25, border: 1, borderColor: 'divider', overflow: 'auto' }, ...(Array.isArray(sx) ? sx : [sx])]}>

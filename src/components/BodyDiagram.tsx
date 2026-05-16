@@ -114,7 +114,7 @@ export function BodyDiagram({ muscles, selectedMuscleIds, view, onViewChange, on
             Тело
           </Typography>
           <Typography variant="body2" color="text.secondary" textAlign="center">
-            Используется стандартная библиотека тела. Нажмите на область мышцы для фильтрации.
+            Используется стандартная библиотека тела.
           </Typography>
         </Box>
 
