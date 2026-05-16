@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Box, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 import type { Exercise, Muscle } from '../data/types';
@@ -27,72 +26,10 @@ export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps)
     .map((muscleId) => muscles.find((muscle) => muscle.id === muscleId))
     .filter((muscle): muscle is Muscle => Boolean(muscle));
 
-  const fallbackReference = {
+  const reference = {
     labelRu: 'Поиск техники в Google',
     url: `https://www.google.com/search?q=${encodeURIComponent(`${exercise.nameRu} техника`)}`,
   };
-
-  const [reference, setReference] = useState<{ labelRu: string; url: string }>({
-    labelRu: exercise.reference?.labelRu ?? fallbackReference.labelRu,
-    url: exercise.reference?.url ?? fallbackReference.url,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (exercise.reference) {
-      setReference(exercise.reference);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    const resolveReference = async () => {
-      try {
-        const response = await fetch(
-          `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(exercise.nameRu)}&srlimit=1&format=json&origin=*`,
-        );
-
-        if (!response.ok) {
-          if (!cancelled) {
-            setReference(fallbackReference);
-          }
-          return;
-        }
-
-        const data = (await response.json()) as {
-          query?: {
-            search?: Array<{ title?: string }>;
-          };
-        };
-
-        const title = data.query?.search?.[0]?.title;
-        if (!title) {
-          if (!cancelled) {
-            setReference(fallbackReference);
-          }
-          return;
-        }
-
-        if (!cancelled) {
-          setReference({
-            labelRu: 'Статья в Википедии',
-            url: `https://ru.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
-          });
-        }
-      } catch {
-        if (!cancelled) {
-          setReference(fallbackReference);
-        }
-      }
-    };
-
-    void resolveReference();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [exercise.id, exercise.nameRu, exercise.reference, fallbackReference.labelRu, fallbackReference.url]);
 
   return (
     <Paper elevation={0} sx={[{ p: 2.25, border: 1, borderColor: 'divider', overflow: 'auto' }, ...(Array.isArray(sx) ? sx : [sx])]}>
