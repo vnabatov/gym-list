@@ -25,6 +25,7 @@ interface ExerciseListProps {
   onIsolationOnlyChange: (nextValue: boolean) => void;
   onSearchChange: (value: string) => void;
   onSelectExercise: (exerciseId: string) => void;
+  onShowExerciseMuscles: (muscleIds: string[]) => void;
 }
 
 export function ExerciseList({
@@ -37,8 +38,10 @@ export function ExerciseList({
   onIsolationOnlyChange,
   onSearchChange,
   onSelectExercise,
+  onShowExerciseMuscles,
 }: ExerciseListProps) {
   const visibleMuscles = muscles.filter((muscle) => selectedMuscleIds.has(muscle.id));
+  const canUseIsolationFilter = selectedMuscleIds.size === 1;
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
@@ -61,10 +64,12 @@ export function ExerciseList({
           onChange={(event) => onSearchChange(event.target.value)}
         />
 
-        <FormControlLabel
-          control={<Checkbox checked={isolationOnly} onChange={(event) => onIsolationOnlyChange(event.target.checked)} />}
-          label="Только изолирующие упражнения"
-        />
+        {canUseIsolationFilter && (
+          <FormControlLabel
+            control={<Checkbox checked={isolationOnly} onChange={(event) => onIsolationOnlyChange(event.target.checked)} />}
+            label="Только изолирующие упражнения"
+          />
+        )}
 
         {visibleMuscles.length > 0 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -81,7 +86,7 @@ export function ExerciseList({
 
         <Divider />
 
-        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflow: 'auto', pr: 0.5 }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflowY: 'scroll', scrollbarGutter: 'stable', pr: 0.5 }}>
           {exercises.length === 0 ? (
             <Typography color="text.secondary">Ничего не найдено. Попробуйте другой запрос или снимите фильтр мышц.</Typography>
           ) : (
@@ -92,6 +97,7 @@ export function ExerciseList({
                   <ListItemButton
                     key={exercise.id}
                     onClick={() => onSelectExercise(exercise.id)}
+                    onDoubleClick={() => onShowExerciseMuscles([...exercise.primaryMuscles, ...exercise.secondaryMuscles])}
                     selected={selected}
                     sx={{
                       mb: 0.75,

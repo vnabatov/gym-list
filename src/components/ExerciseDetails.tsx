@@ -26,6 +26,13 @@ export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps)
     .map((muscleId) => muscles.find((muscle) => muscle.id === muscleId))
     .filter((muscle): muscle is Muscle => Boolean(muscle));
 
+  const reference =
+    exercise.reference ??
+    {
+      labelRu: 'Инструкция (Wikipedia)',
+      url: `https://ru.wikipedia.org/w/index.php?search=${encodeURIComponent(exercise.nameRu)}`,
+    };
+
   return (
     <Paper elevation={0} sx={[{ p: 2.25, border: 1, borderColor: 'divider', overflow: 'auto' }, ...(Array.isArray(sx) ? sx : [sx])]}>
       <Stack spacing={2}>
@@ -64,16 +71,14 @@ export function ExerciseDetails({ exercise, muscles, sx }: ExerciseDetailsProps)
           </Stack>
         </Box>
 
-        {exercise.reference && (
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Справка
-            </Typography>
-            <Link href={exercise.reference.url} target="_blank" rel="noreferrer">
-              {exercise.reference.labelRu}
-            </Link>
-          </Box>
-        )}
+        <Box>
+          <Typography variant="subtitle2" gutterBottom>
+            Справка
+          </Typography>
+          <Link href={reference.url} target="_blank" rel="noreferrer">
+            {reference.labelRu}
+          </Link>
+        </Box>
       </Stack>
     </Paper>
   );

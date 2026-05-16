@@ -46,6 +46,14 @@ export const appTheme = createTheme({
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: {
+          overflowY: 'scroll',
+          scrollbarGutter: 'stable',
+        },
+      },
+    },
     MuiPaper: {
       styleOverrides: {
         root: {

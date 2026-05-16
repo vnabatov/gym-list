@@ -80,7 +80,7 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
 
         <Divider />
 
-        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflow: 'auto', pr: 0.5 }}>
+        <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflowY: 'scroll', scrollbarGutter: 'stable', pr: 0.5 }}>
           {Object.entries(grouped).map(([groupName, items]) => (
             <Box key={groupName} sx={{ mb: 2 }}>
               <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1 }}>

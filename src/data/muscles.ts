@@ -157,19 +157,10 @@ export const muscles: Muscle[] = [
   {
     id: 'calves',
     nameRu: 'Икроножные',
-    aliases: ['икры', 'calves'],
+    aliases: ['икры', 'икроножные сзади', 'calves', 'rear calves'],
     groupRu: 'Ноги',
     view: 'front',
     color: '#f87171',
-    descriptionRu: 'Икры отвечают за подошвенное сгибание стопы и устойчивость при ходьбе.',
-  },
-  {
-    id: 'rear_calves',
-    nameRu: 'Икроножные сзади',
-    aliases: ['икры сзади', 'rear calves'],
-    groupRu: 'Ноги',
-    view: 'back',
-    color: '#fb923c',
-    descriptionRu: 'Нижняя часть голени стабилизирует движение стопы и помогает в прыжках.',
+    descriptionRu: 'Икры (спереди и сзади) отвечают за подошвенное сгибание стопы, устойчивость и прыжковые движения.',
   },
 ];

@@ -39,7 +39,21 @@ export default function App() {
     }
   }, [selectedExerciseId, setSelectedExerciseId, visibleExercises]);
 
+  useEffect(() => {
+    if (selectedMuscleIds.size !== 1 && isolationOnly) {
+      setIsolationOnly(false);
+    }
+  }, [isolationOnly, selectedMuscleIds, setIsolationOnly]);
+
   const toggleMuscle = (muscleId: string) => {
+    const wasSelected = selectedMuscleIds.has(muscleId);
+    if (!wasSelected) {
+      const targetMuscle = muscles.find((muscle) => muscle.id === muscleId);
+      if (targetMuscle) {
+        setBodyView(targetMuscle.view);
+      }
+    }
+
     setSelectedMuscleIds((current) => {
       const next = new Set(current);
       if (next.has(muscleId)) {
@@ -72,6 +86,18 @@ export default function App() {
     });
   };
 
+  const showExerciseMuscles = (muscleIds: string[]) => {
+    const unique = [...new Set(muscleIds)];
+    setSelectedMuscleIds(new Set(unique));
+
+    const frontCount = unique.filter((id) => muscles.find((muscle) => muscle.id === id)?.view === 'front').length;
+    const backCount = unique.filter((id) => muscles.find((muscle) => muscle.id === id)?.view === 'back').length;
+
+    if (frontCount !== backCount) {
+      setBodyView(frontCount > backCount ? 'front' : 'back');
+    }
+  };
+
   return (
     <Box sx={{ minHeight: '100dvh', py: { xs: 2, md: 3 }, background: 'linear-gradient(180deg, #eaf3f5 0%, #f7fafc 35%, #f4f7f9 100%)' }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, md: 3 } }}>
@@ -101,9 +127,6 @@ export default function App() {
                 }}
               >
                 Сбросить фильтры
-              </Button>
-              <Button variant="contained" onClick={() => setBodyView(bodyView === 'front' ? 'back' : 'front')}>
-                Показать {bodyView === 'front' ? 'спину' : 'перед'}
               </Button>
             </Stack>
           </Stack>
@@ -143,21 +166,23 @@ export default function App() {
           </Box>
 
           <Box sx={{ minHeight: 0 }}>
-            <Stack spacing={2.5} sx={{ height: '100%', minHeight: 0 }}>
-              <ExerciseList
-                exercises={visibleExercises}
-                muscles={muscles}
-                selectedMuscleIds={selectedMuscleIds}
-                selectedExerciseId={selectedExerciseId}
-                search={exerciseSearch}
-                isolationOnly={isolationOnly}
-                onIsolationOnlyChange={setIsolationOnly}
-                onSearchChange={setExerciseSearch}
-                onSelectExercise={setSelectedExerciseId}
-              />
-              <ExerciseDetails exercise={selectedExercise} muscles={muscles} sx={{ flexShrink: 0, maxHeight: { xs: 320, xl: '40%' } }} />
-            </Stack>
+            <ExerciseList
+              exercises={visibleExercises}
+              muscles={muscles}
+              selectedMuscleIds={selectedMuscleIds}
+              selectedExerciseId={selectedExerciseId}
+              search={exerciseSearch}
+              isolationOnly={isolationOnly}
+              onIsolationOnlyChange={setIsolationOnly}
+              onSearchChange={setExerciseSearch}
+              onSelectExercise={setSelectedExerciseId}
+              onShowExerciseMuscles={showExerciseMuscles}
+            />
           </Box>
+        </Box>
+
+        <Box sx={{ mt: 2.5 }}>
+          <ExerciseDetails exercise={selectedExercise} muscles={muscles} />
         </Box>
       </Container>
     </Box>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Body, { type ExtendedBodyPart, type Slug } from 'react-muscle-highlighter';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import type { Muscle, MuscleView } from '../data/types';
@@ -12,6 +13,7 @@ interface BodyDiagramProps {
 
 const frontSlugToMuscleIds: Partial<Record<Slug, string[]>> = {
   neck: ['neck'],
+  trapezius: ['traps'],
   chest: ['chest'],
   deltoids: ['shoulders_front'],
   biceps: ['biceps'],
@@ -32,7 +34,7 @@ const backSlugToMuscleIds: Partial<Record<Slug, string[]>> = {
   'lower-back': ['lower_back'],
   gluteal: ['glutes'],
   hamstring: ['hamstrings'],
-  calves: ['rear_calves'],
+  calves: ['calves'],
 };
 
 const muscleIdToSlug = new Map<string, Slug>([
@@ -54,11 +56,11 @@ const muscleIdToSlug = new Map<string, Slug>([
   ['adductors', 'adductors'],
   ['hamstrings', 'hamstring'],
   ['calves', 'calves'],
-  ['rear_calves', 'calves'],
 ]);
 
 export function BodyDiagram({ muscles, selectedMuscleIds, view, onViewChange, onToggleMuscles }: BodyDiagramProps) {
   const activeMap = view === 'front' ? frontSlugToMuscleIds : backSlugToMuscleIds;
+  const [hoveredSlug, setHoveredSlug] = useState<Slug | null>(null);
 
   const muscleById = new Map(muscles.map((muscle) => [muscle.id, muscle]));
 
@@ -87,6 +89,20 @@ export function BodyDiagram({ muscles, selectedMuscleIds, view, onViewChange, on
       });
     }
   });
+
+  if (hoveredSlug && activeMap[hoveredSlug] && !highlightedBySlug.has(hoveredSlug)) {
+    const hoverMuscleId = activeMap[hoveredSlug]?.[0];
+    const hoverMuscle = hoverMuscleId ? muscleById.get(hoverMuscleId) : undefined;
+
+    highlightedBySlug.set(hoveredSlug, {
+      slug: hoveredSlug,
+      color: hoverMuscle?.color ?? '#60a5fa',
+      styles: {
+        stroke: hoverMuscle?.color ?? '#3b82f6',
+        strokeWidth: 2,
+      },
+    });
+  }
 
   const bodyData = [...highlightedBySlug.values()];
 
@@ -123,7 +139,31 @@ export function BodyDiagram({ muscles, selectedMuscleIds, view, onViewChange, on
             p: 1.5,
             display: 'grid',
             placeItems: 'center',
+            '& svg path[id]': {
+              transition: 'opacity 120ms ease, filter 120ms ease',
+            },
+            '& svg path[id]:hover': {
+              opacity: 0.82,
+              filter: 'brightness(1.08)',
+            },
           }}
+          onMouseOver={(event) => {
+            const element = event.target as HTMLElement;
+            const path = element.closest('path[id]') as SVGPathElement | null;
+
+            if (!path) {
+              return;
+            }
+
+            const slug = path.id as Slug;
+            if (!activeMap[slug] || activeMap[slug]!.length === 0) {
+              setHoveredSlug(null);
+              return;
+            }
+
+            setHoveredSlug(slug);
+          }}
+          onMouseLeave={() => setHoveredSlug(null)}
         >
           <Body
             data={bodyData}
