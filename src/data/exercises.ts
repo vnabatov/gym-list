@@ -331,6 +331,7 @@ export const exercises: Exercise[] = [
     instructionsRu: ['Держите корпус в одной линии.', 'Тяните грудь к перекладине.', 'Не проваливайте таз.'],
     primaryMuscles: ['upper_back', 'lats'],
     secondaryMuscles: ['biceps', 'forearms', 'abs'],
+    reference: { labelRu: 'Поиск техники в Google (на русском)', url: 'https://www.google.com/search?q=%D0%B0%D0%B2%D1%81%D1%82%D1%80%D0%B0%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B5+%D0%BF%D0%BE%D0%B4%D1%82%D1%8F%D0%B3%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F+%D1%82%D0%B5%D1%85%D0%BD%D0%B8%D0%BA%D0%B0' },
   },
   {
     id: 'leg-extension',
