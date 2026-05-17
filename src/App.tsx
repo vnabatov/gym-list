@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Checkbox, Collapse, Container, FormControlLabel, Stack, Typography } from '@mui/material';
+import { Box, Button, Checkbox, Collapse, Container, Stack, Typography } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { exercises as exerciseCatalog } from './data/exercises';
 import { muscles } from './data/muscles';
 import { BodyDiagram } from './components/BodyDiagram';
 import { ExerciseDetails } from './components/ExerciseDetails';
@@ -29,6 +30,7 @@ export default function App() {
   } = useCatalogFilters();
   const [multiExerciseSelection, setMultiExerciseSelection] = useState(false);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<string>>(new Set());
+  const [starredExerciseIds, setStarredExerciseIds] = useState<Set<string>>(new Set());
   const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
@@ -111,24 +113,37 @@ export default function App() {
     setSelectedExerciseId(exerciseId);
   };
 
+  const toggleExerciseStar = (exerciseId: string) => {
+    setStarredExerciseIds((current) => {
+      const next = new Set(current);
+      if (next.has(exerciseId)) {
+        next.delete(exerciseId);
+      } else {
+        next.add(exerciseId);
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!multiExerciseSelection && selectedExerciseIds.size > 0) {
       setSelectedExerciseIds(new Set());
     }
   }, [multiExerciseSelection, selectedExerciseIds]);
 
-  useEffect(() => {
-    setSelectedExerciseIds((current) => {
-      const visibleExerciseIds = new Set(visibleExercises.map((exercise) => exercise.id));
-      const filtered = [...current].filter((exerciseId) => visibleExerciseIds.has(exerciseId));
+  const exercisesForList = useMemo(() => {
+    if (!multiExerciseSelection || selectedExerciseIds.size === 0) {
+      return visibleExercises;
+    }
 
-      if (filtered.length === current.size) {
-        return current;
-      }
+    const merged = new Map(visibleExercises.map((exercise) => [exercise.id, exercise]));
 
-      return new Set(filtered);
-    });
-  }, [visibleExercises]);
+    exerciseCatalog
+      .filter((exercise) => selectedExerciseIds.has(exercise.id))
+      .forEach((exercise) => merged.set(exercise.id, exercise));
+
+    return [...merged.values()];
+  }, [multiExerciseSelection, selectedExerciseIds, visibleExercises]);
 
   const multiSelectedMuscleIds = useMemo(() => {
     if (!multiExerciseSelection || selectedExerciseIds.size === 0) {
@@ -136,14 +151,14 @@ export default function App() {
     }
 
     const ids = new Set<string>();
-    visibleExercises
+    exerciseCatalog
       .filter((exercise) => selectedExerciseIds.has(exercise.id))
       .forEach((exercise) => {
         [...exercise.primaryMuscles, ...exercise.secondaryMuscles].forEach((muscleId) => ids.add(muscleId));
       });
 
     return ids;
-  }, [multiExerciseSelection, selectedExerciseIds, visibleExercises]);
+  }, [multiExerciseSelection, selectedExerciseIds]);
 
   return (
     <Box sx={{ minHeight: '100dvh', py: { xs: 2, md: 3 }, background: 'linear-gradient(180deg, #eaf3f5 0%, #f7fafc 35%, #f4f7f9 100%)' }}>
@@ -159,36 +174,51 @@ export default function App() {
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-              <FormControlLabel
-                sx={{ mr: 1 }}
-                control={
-                  <Checkbox
-                    checked={isolationOnly}
-                    disabled={selectedMuscleIds.size !== 1}
-                    onChange={(event) => setIsolationOnly(event.target.checked)}
-                  />
-                }
-                label="Только изолирующие упражнения"
-              />
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+              <Box
+                component="label"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mr: 1,
+                  pl: 0.5,
+                  cursor: selectedMuscleIds.size === 1 ? 'pointer' : 'default',
+                }}
+              >
+                <Checkbox
+                  checked={isolationOnly}
+                  disabled={selectedMuscleIds.size !== 1}
+                  onChange={(event) => setIsolationOnly(event.target.checked)}
+                />
+                <Typography color={selectedMuscleIds.size !== 1 ? 'text.disabled' : 'text.primary'}>
+                  Только изолирующие упражнения
+                </Typography>
+              </Box>
 
-              <FormControlLabel
-                sx={{ mr: 1 }}
-                control={
-                  <Checkbox
-                    checked={allSelectedMusclesOnly}
-                    disabled={selectedMuscleIds.size <= 1}
-                    onChange={(event) => setAllSelectedMusclesOnly(event.target.checked)}
-                  />
-                }
-                label="Только упражнения со всеми выбранными мышцами"
-              />
+              <Box
+                component="label"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mr: 1,
+                  pl: 0.5,
+                  cursor: selectedMuscleIds.size > 1 ? 'pointer' : 'default',
+                }}
+              >
+                <Checkbox
+                  checked={allSelectedMusclesOnly}
+                  disabled={selectedMuscleIds.size <= 1}
+                  onChange={(event) => setAllSelectedMusclesOnly(event.target.checked)}
+                />
+                <Typography color={selectedMuscleIds.size <= 1 ? 'text.disabled' : 'text.primary'}>
+                  Только упражнения со всеми выбранными мышцами
+                </Typography>
+              </Box>
 
-              <FormControlLabel
-                sx={{ mr: 1 }}
-                control={<Checkbox checked={multiExerciseSelection} onChange={(event) => setMultiExerciseSelection(event.target.checked)} />}
-                label="Множественный выбор упражнений"
-              />
+              <Box component="label" sx={{ display: 'flex', alignItems: 'center', mr: 1, pl: 0.5, cursor: 'pointer' }}>
+                <Checkbox checked={multiExerciseSelection} onChange={(event) => setMultiExerciseSelection(event.target.checked)} />
+                <Typography>Множественный выбор упражнений</Typography>
+              </Box>
 
               <Button variant="outlined" onClick={() => setShowHelp((current) => !current)} sx={{ minWidth: 40, px: 1.25 }}>
                 ?
@@ -249,16 +279,18 @@ export default function App() {
 
           <Box sx={{ minHeight: 0 }}>
             <ExerciseList
-              exercises={visibleExercises}
+              exercises={exercisesForList}
               muscles={muscles}
               selectedMuscleIds={selectedMuscleIds}
               selectedExerciseId={selectedExerciseId}
               selectedExerciseIds={selectedExerciseIds}
               multiExerciseSelection={multiExerciseSelection}
+              starredExerciseIds={starredExerciseIds}
               search={exerciseSearch}
               onSearchChange={setExerciseSearch}
               onSelectExercise={setSelectedExerciseId}
               onToggleExerciseSelection={toggleExerciseSelection}
+              onToggleExerciseStar={toggleExerciseStar}
               onResetMultiExerciseSelection={resetMultiExerciseSelection}
               onShowExerciseMuscles={showExerciseMuscles}
             />

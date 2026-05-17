@@ -13,6 +13,8 @@ import {
   Typography,
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { alpha } from '@mui/material/styles';
 import type { Exercise, Muscle } from '../data/types';
 
@@ -23,10 +25,12 @@ interface ExerciseListProps {
   selectedExerciseId: string | null;
   selectedExerciseIds: Set<string>;
   multiExerciseSelection: boolean;
+  starredExerciseIds: Set<string>;
   search: string;
   onSearchChange: (value: string) => void;
   onSelectExercise: (exerciseId: string) => void;
   onToggleExerciseSelection: (exerciseId: string) => void;
+  onToggleExerciseStar: (exerciseId: string) => void;
   onResetMultiExerciseSelection: () => void;
   onShowExerciseMuscles: (muscleIds: string[]) => void;
 }
@@ -38,15 +42,28 @@ export function ExerciseList({
   selectedExerciseId,
   selectedExerciseIds,
   multiExerciseSelection,
+  starredExerciseIds,
   search,
   onSearchChange,
   onSelectExercise,
   onToggleExerciseSelection,
+  onToggleExerciseStar,
   onResetMultiExerciseSelection,
   onShowExerciseMuscles,
 }: ExerciseListProps) {
   const visibleMuscles = muscles.filter((muscle) => selectedMuscleIds.has(muscle.id));
   const multiSelectedExercises = exercises.filter((exercise) => selectedExerciseIds.has(exercise.id));
+  const baseOrder = new Map(exercises.map((exercise, index) => [exercise.id, index]));
+  const orderedExercises = [...exercises].sort((left, right) => {
+    const leftStarred = starredExerciseIds.has(left.id) ? 1 : 0;
+    const rightStarred = starredExerciseIds.has(right.id) ? 1 : 0;
+
+    if (leftStarred !== rightStarred) {
+      return rightStarred - leftStarred;
+    }
+
+    return (baseOrder.get(left.id) ?? 0) - (baseOrder.get(right.id) ?? 0);
+  });
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
@@ -111,8 +128,9 @@ export function ExerciseList({
             <Typography color="text.secondary">Ничего не найдено. Попробуйте другой запрос или снимите фильтр мышц.</Typography>
           ) : (
             <List disablePadding>
-              {exercises.map((exercise) => {
+              {orderedExercises.map((exercise) => {
                 const selected = multiExerciseSelection ? selectedExerciseIds.has(exercise.id) : selectedExerciseId === exercise.id;
+                const starred = starredExerciseIds.has(exercise.id);
                 return (
                   <ListItemButton
                     key={exercise.id}
@@ -135,6 +153,7 @@ export function ExerciseList({
                     selected={selected}
                     sx={{
                       mb: 0.75,
+                      pl: 1.25,
                       borderRadius: 2,
                       border: 1,
                       borderColor: selected ? 'primary.main' : 'divider',
@@ -142,7 +161,22 @@ export function ExerciseList({
                     }}
                   >
                     <ListItemText
-                      primary={exercise.nameRu}
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <IconButton
+                            size="small"
+                            aria-label={starred ? 'Убрать из избранного' : 'Добавить в избранное'}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onToggleExerciseStar(exercise.id);
+                            }}
+                            sx={{ ml: -0.5 }}
+                          >
+                            {starred ? <StarIcon fontSize="small" color="warning" /> : <StarBorderIcon fontSize="small" color="disabled" />}
+                          </IconButton>
+                          <Box component="span">{exercise.nameRu}</Box>
+                        </Box>
+                      }
                       secondary={
                         <Stack spacing={0.75} sx={{ mt: 0.5 }}>
                           <Typography variant="body2" color="text.secondary">
