@@ -105,49 +105,81 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
                   const selected = selectedMuscleIds.has(muscle.id);
 
                   return (
-                    <Tooltip
+                    <ListItemButton
                       key={muscle.id}
-                      title={muscle.descriptionRu}
-                      placement="right"
-                      arrow
-                      slotProps={{
-                        tooltip: {
-                          sx: {
-                            bgcolor: '#111827',
-                            color: '#f3f4f6',
-                            fontSize: 13,
-                            lineHeight: 1.4,
-                            borderRadius: 1.5,
-                            px: 1.25,
-                            py: 0.9,
-                            boxShadow: '0 10px 25px rgba(0,0,0,0.25)',
-                          },
+                      onClick={() => onToggleMuscle(muscle.id)}
+                      selected={selected}
+                      sx={{
+                        mb: 0.75,
+                        borderRadius: 2,
+                        border: 1,
+                        borderColor: selected ? muscle.color : 'divider',
+                        backgroundColor: selected ? alpha(muscle.color, 0.12) : 'transparent',
+                        '& .muscle-help': {
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          transition: 'opacity 140ms ease',
                         },
-                        arrow: {
-                          sx: {
-                            color: '#111827',
-                          },
+                        '&:hover .muscle-help': {
+                          opacity: 1,
+                          pointerEvents: 'auto',
                         },
                       }}
                     >
-                      <ListItemButton
-                        onClick={() => onToggleMuscle(muscle.id)}
-                        selected={selected}
-                        sx={{
-                          mb: 0.75,
-                          borderRadius: 2,
-                          border: 1,
-                          borderColor: selected ? muscle.color : 'divider',
-                          backgroundColor: selected ? alpha(muscle.color, 0.12) : 'transparent',
+                      <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                      <ListItemText
+                        primary={muscle.nameRu}
+                        primaryTypographyProps={{ fontWeight: 700 }}
+                      />
+                      <Tooltip
+                        title={muscle.descriptionRu}
+                        placement="right"
+                        slotProps={{
+                          popper: {
+                            modifiers: [
+                              {
+                                name: 'offset',
+                                options: {
+                                  offset: [0, 0],
+                                },
+                              },
+                            ],
+                          },
+                          tooltip: {
+                            sx: {
+                              bgcolor: '#f8fbfc',
+                              color: '#1f2937',
+                              fontSize: 13,
+                              lineHeight: 1.4,
+                              borderRadius: 1.5,
+                              px: 2.5,
+                              py: 0.9,
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
+                            },
+                          },
                         }}
                       >
-                        <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
-                        <ListItemText
-                          primary={muscle.nameRu}
-                          primaryTypographyProps={{ fontWeight: 700 }}
-                        />
-                      </ListItemButton>
-                    </Tooltip>
+                        <IconButton
+                          size="small"
+                          className="muscle-help"
+                          aria-label={`Описание мышцы ${muscle.nameRu}`}
+                          onClick={(event) => event.stopPropagation()}
+                          sx={{
+                            border: 1,
+                            borderColor: 'divider',
+                            color: 'text.secondary',
+                            width: 22,
+                            height: 22,
+                            fontSize: 12,
+                            fontWeight: 800,
+                          }}
+                        >
+                          ?
+                        </IconButton>
+                      </Tooltip>
+                    </ListItemButton>
                   );
                 })}
               </List>
