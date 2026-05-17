@@ -4,14 +4,18 @@ import {
   Checkbox,
   Chip,
   Divider,
+  IconButton,
+  InputAdornment,
   List,
   ListItemButton,
   ListItemText,
   Paper,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 import { alpha } from '@mui/material/styles';
 import type { Muscle } from '../data/types';
 
@@ -50,6 +54,15 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
           placeholder="Например: грудь, пресс, спина"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
+          InputProps={{
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton size="small" aria-label="Очистить поиск мышц" onClick={() => onSearchChange('')}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
+          }}
         />
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -92,25 +105,49 @@ export function MuscleList({ muscles, selectedMuscleIds, search, onSearchChange,
                   const selected = selectedMuscleIds.has(muscle.id);
 
                   return (
-                    <ListItemButton
+                    <Tooltip
                       key={muscle.id}
-                      onClick={() => onToggleMuscle(muscle.id)}
-                      selected={selected}
-                      sx={{
-                        mb: 0.75,
-                        borderRadius: 2,
-                        border: 1,
-                        borderColor: selected ? muscle.color : 'divider',
-                        backgroundColor: selected ? alpha(muscle.color, 0.12) : 'transparent',
+                      title={muscle.descriptionRu}
+                      placement="right"
+                      arrow
+                      slotProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: '#111827',
+                            color: '#f3f4f6',
+                            fontSize: 13,
+                            lineHeight: 1.4,
+                            borderRadius: 1.5,
+                            px: 1.25,
+                            py: 0.9,
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.25)',
+                          },
+                        },
+                        arrow: {
+                          sx: {
+                            color: '#111827',
+                          },
+                        },
                       }}
                     >
-                      <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
-                      <ListItemText
-                        primary={muscle.nameRu}
-                        secondary={muscle.descriptionRu}
-                        primaryTypographyProps={{ fontWeight: 700 }}
-                      />
-                    </ListItemButton>
+                      <ListItemButton
+                        onClick={() => onToggleMuscle(muscle.id)}
+                        selected={selected}
+                        sx={{
+                          mb: 0.75,
+                          borderRadius: 2,
+                          border: 1,
+                          borderColor: selected ? muscle.color : 'divider',
+                          backgroundColor: selected ? alpha(muscle.color, 0.12) : 'transparent',
+                        }}
+                      >
+                        <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                        <ListItemText
+                          primary={muscle.nameRu}
+                          primaryTypographyProps={{ fontWeight: 700 }}
+                        />
+                      </ListItemButton>
+                    </Tooltip>
                   );
                 })}
               </List>

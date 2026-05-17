@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
+import { Box, Button, Checkbox, Collapse, Container, FormControlLabel, Stack, Typography } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { muscles } from './data/muscles';
@@ -11,8 +11,6 @@ import { useCatalogFilters } from './hooks/useCatalogFilters';
 
 export default function App() {
   const {
-    bodyView,
-    setBodyView,
     muscleSearch,
     setMuscleSearch,
     exerciseSearch,
@@ -29,6 +27,9 @@ export default function App() {
     visibleExercises,
     selectedExercise,
   } = useCatalogFilters();
+  const [multiExerciseSelection, setMultiExerciseSelection] = useState(false);
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<string>>(new Set());
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     if (visibleExercises.length === 0) {
@@ -54,14 +55,6 @@ export default function App() {
   }, [allSelectedMusclesOnly, selectedMuscleIds, setAllSelectedMusclesOnly]);
 
   const toggleMuscle = (muscleId: string) => {
-    const wasSelected = selectedMuscleIds.has(muscleId);
-    if (!wasSelected) {
-      const targetMuscle = muscles.find((muscle) => muscle.id === muscleId);
-      if (targetMuscle) {
-        setBodyView(targetMuscle.view);
-      }
-    }
-
     setSelectedMuscleIds((current) => {
       const next = new Set(current);
       if (next.has(muscleId)) {
@@ -97,14 +90,60 @@ export default function App() {
   const showExerciseMuscles = (muscleIds: string[]) => {
     const unique = [...new Set(muscleIds)];
     setSelectedMuscleIds(new Set(unique));
-
-    const frontCount = unique.filter((id) => muscles.find((muscle) => muscle.id === id)?.view === 'front').length;
-    const backCount = unique.filter((id) => muscles.find((muscle) => muscle.id === id)?.view === 'back').length;
-
-    if (frontCount !== backCount) {
-      setBodyView(frontCount > backCount ? 'front' : 'back');
-    }
   };
+
+  const resetMultiExerciseSelection = () => {
+    setMultiExerciseSelection(false);
+    setSelectedExerciseIds(new Set());
+  };
+
+  const toggleExerciseSelection = (exerciseId: string) => {
+    setSelectedExerciseIds((current) => {
+      const next = new Set(current);
+      if (next.has(exerciseId)) {
+        next.delete(exerciseId);
+      } else {
+        next.add(exerciseId);
+      }
+      return next;
+    });
+
+    setSelectedExerciseId(exerciseId);
+  };
+
+  useEffect(() => {
+    if (!multiExerciseSelection && selectedExerciseIds.size > 0) {
+      setSelectedExerciseIds(new Set());
+    }
+  }, [multiExerciseSelection, selectedExerciseIds]);
+
+  useEffect(() => {
+    setSelectedExerciseIds((current) => {
+      const visibleExerciseIds = new Set(visibleExercises.map((exercise) => exercise.id));
+      const filtered = [...current].filter((exerciseId) => visibleExerciseIds.has(exerciseId));
+
+      if (filtered.length === current.size) {
+        return current;
+      }
+
+      return new Set(filtered);
+    });
+  }, [visibleExercises]);
+
+  const multiSelectedMuscleIds = useMemo(() => {
+    if (!multiExerciseSelection || selectedExerciseIds.size === 0) {
+      return new Set<string>();
+    }
+
+    const ids = new Set<string>();
+    visibleExercises
+      .filter((exercise) => selectedExerciseIds.has(exercise.id))
+      .forEach((exercise) => {
+        [...exercise.primaryMuscles, ...exercise.secondaryMuscles].forEach((muscleId) => ids.add(muscleId));
+      });
+
+    return ids;
+  }, [multiExerciseSelection, selectedExerciseIds, visibleExercises]);
 
   return (
     <Box sx={{ minHeight: '100dvh', py: { xs: 2, md: 3 }, background: 'linear-gradient(180deg, #eaf3f5 0%, #f7fafc 35%, #f4f7f9 100%)' }}>
@@ -117,13 +156,44 @@ export default function App() {
               </Box>
               <Box>
                 <Typography variant="h4">Атлас упражнений</Typography>
-                <Typography color="text.secondary">
-                  Мышцы, силуэт и упражнения синхронизированы на одном экране.
-                </Typography>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
+              <FormControlLabel
+                sx={{ mr: 1 }}
+                control={
+                  <Checkbox
+                    checked={isolationOnly}
+                    disabled={selectedMuscleIds.size !== 1}
+                    onChange={(event) => setIsolationOnly(event.target.checked)}
+                  />
+                }
+                label="Только изолирующие упражнения"
+              />
+
+              <FormControlLabel
+                sx={{ mr: 1 }}
+                control={
+                  <Checkbox
+                    checked={allSelectedMusclesOnly}
+                    disabled={selectedMuscleIds.size <= 1}
+                    onChange={(event) => setAllSelectedMusclesOnly(event.target.checked)}
+                  />
+                }
+                label="Только упражнения со всеми выбранными мышцами"
+              />
+
+              <FormControlLabel
+                sx={{ mr: 1 }}
+                control={<Checkbox checked={multiExerciseSelection} onChange={(event) => setMultiExerciseSelection(event.target.checked)} />}
+                label="Множественный выбор упражнений"
+              />
+
+              <Button variant="outlined" onClick={() => setShowHelp((current) => !current)} sx={{ minWidth: 40, px: 1.25 }}>
+                ?
+              </Button>
+
               <Button
                 variant="outlined"
                 startIcon={<RestartAltIcon />}
@@ -133,6 +203,7 @@ export default function App() {
                   setExerciseSearch('');
                   setIsolationOnly(false);
                   setAllSelectedMusclesOnly(false);
+                  resetMultiExerciseSelection();
                 }}
               >
                 Сбросить фильтры
@@ -140,9 +211,11 @@ export default function App() {
             </Stack>
           </Stack>
 
-          <Typography variant="body1" color="text.secondary" maxWidth={920}>
-            Выберите мышцы слева или на силуэте, чтобы увидеть только подходящие упражнения. Описание выбранного упражнения показывается ниже списка.
-          </Typography>
+          <Collapse in={showHelp}>
+            <Typography variant="body1" color="text.secondary" maxWidth={920}>
+              Выберите мышцы слева или на силуэте, чтобы увидеть только подходящие упражнения. Описание выбранного упражнения показывается ниже списка.
+            </Typography>
+          </Collapse>
         </Stack>
 
         <Box
@@ -151,7 +224,8 @@ export default function App() {
             gap: 2.5,
             gridTemplateColumns: { xs: '1fr', xl: 'minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 1.1fr)' },
             alignItems: 'stretch',
-            height: { xs: 'auto', xl: 'calc(100dvh - 236px)' },
+            minHeight: { xs: 'auto', xl: 'calc(100dvh - 178px)' },
+            height: { xs: 'auto', xl: 'calc(100dvh - 178px)' },
           }}
         >
           <Box sx={{ minHeight: 0 }}>
@@ -168,8 +242,7 @@ export default function App() {
             <BodyDiagram
               muscles={muscles}
               selectedMuscleIds={selectedMuscleIds}
-              view={bodyView}
-              onViewChange={setBodyView}
+              extraHighlightedMuscleIds={multiSelectedMuscleIds}
               onToggleMuscles={toggleMuscleGroup}
             />
           </Box>
@@ -180,13 +253,13 @@ export default function App() {
               muscles={muscles}
               selectedMuscleIds={selectedMuscleIds}
               selectedExerciseId={selectedExerciseId}
+              selectedExerciseIds={selectedExerciseIds}
+              multiExerciseSelection={multiExerciseSelection}
               search={exerciseSearch}
-              isolationOnly={isolationOnly}
-              onIsolationOnlyChange={setIsolationOnly}
-              allSelectedMusclesOnly={allSelectedMusclesOnly}
-              onAllSelectedMusclesOnlyChange={setAllSelectedMusclesOnly}
               onSearchChange={setExerciseSearch}
               onSelectExercise={setSelectedExerciseId}
+              onToggleExerciseSelection={toggleExerciseSelection}
+              onResetMultiExerciseSelection={resetMultiExerciseSelection}
               onShowExerciseMuscles={showExerciseMuscles}
             />
           </Box>

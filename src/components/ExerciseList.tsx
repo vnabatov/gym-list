@@ -1,9 +1,9 @@
 import {
   Box,
-  Checkbox,
   Chip,
   Divider,
-  FormControlLabel,
+  IconButton,
+  InputAdornment,
   List,
   ListItemButton,
   ListItemText,
@@ -12,6 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 import { alpha } from '@mui/material/styles';
 import type { Exercise, Muscle } from '../data/types';
 
@@ -20,13 +21,13 @@ interface ExerciseListProps {
   muscles: Muscle[];
   selectedMuscleIds: Set<string>;
   selectedExerciseId: string | null;
+  selectedExerciseIds: Set<string>;
+  multiExerciseSelection: boolean;
   search: string;
-  isolationOnly: boolean;
-  onIsolationOnlyChange: (nextValue: boolean) => void;
-  allSelectedMusclesOnly: boolean;
-  onAllSelectedMusclesOnlyChange: (nextValue: boolean) => void;
   onSearchChange: (value: string) => void;
   onSelectExercise: (exerciseId: string) => void;
+  onToggleExerciseSelection: (exerciseId: string) => void;
+  onResetMultiExerciseSelection: () => void;
   onShowExerciseMuscles: (muscleIds: string[]) => void;
 }
 
@@ -35,18 +36,17 @@ export function ExerciseList({
   muscles,
   selectedMuscleIds,
   selectedExerciseId,
+  selectedExerciseIds,
+  multiExerciseSelection,
   search,
-  isolationOnly,
-  onIsolationOnlyChange,
-  allSelectedMusclesOnly,
-  onAllSelectedMusclesOnlyChange,
   onSearchChange,
   onSelectExercise,
+  onToggleExerciseSelection,
+  onResetMultiExerciseSelection,
   onShowExerciseMuscles,
 }: ExerciseListProps) {
   const visibleMuscles = muscles.filter((muscle) => selectedMuscleIds.has(muscle.id));
-  const canUseIsolationFilter = selectedMuscleIds.size === 1;
-  const canUseAllSelectedFilter = selectedMuscleIds.size > 1;
+  const multiSelectedExercises = exercises.filter((exercise) => selectedExerciseIds.has(exercise.id));
 
   return (
     <Paper elevation={0} sx={{ p: 2.25, border: 1, borderColor: 'divider', height: '100%' }}>
@@ -67,21 +67,16 @@ export function ExerciseList({
           placeholder="Например: присед, тяга, пресс"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
+          InputProps={{
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton size="small" aria-label="Очистить поиск упражнений" onClick={() => onSearchChange('')}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
+          }}
         />
-
-        {canUseIsolationFilter && (
-          <FormControlLabel
-            control={<Checkbox checked={isolationOnly} onChange={(event) => onIsolationOnlyChange(event.target.checked)} />}
-            label="Только изолирующие упражнения"
-          />
-        )}
-
-        {canUseAllSelectedFilter && (
-          <FormControlLabel
-            control={<Checkbox checked={allSelectedMusclesOnly} onChange={(event) => onAllSelectedMusclesOnlyChange(event.target.checked)} />}
-            label="Только упражнения со всеми выбранными мышцами"
-          />
-        )}
 
         {visibleMuscles.length > 0 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -96,6 +91,19 @@ export function ExerciseList({
           </Box>
         )}
 
+        {multiExerciseSelection && multiSelectedExercises.length > 0 && (
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
+              Выбрано по множественному выбору:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {multiSelectedExercises.map((exercise) => (
+                <Chip key={exercise.id} label={exercise.nameRu} size="small" sx={{ bgcolor: alpha('#8b5cf6', 0.16), fontWeight: 700 }} />
+              ))}
+            </Box>
+          </Box>
+        )}
+
         <Divider />
 
         <Box sx={{ flex: 1, minHeight: { xs: 260, xl: 0 }, overflowY: 'scroll', scrollbarGutter: 'stable', pr: 0.5 }}>
@@ -104,12 +112,26 @@ export function ExerciseList({
           ) : (
             <List disablePadding>
               {exercises.map((exercise) => {
-                const selected = selectedExerciseId === exercise.id;
+                const selected = multiExerciseSelection ? selectedExerciseIds.has(exercise.id) : selectedExerciseId === exercise.id;
                 return (
                   <ListItemButton
                     key={exercise.id}
-                    onClick={() => onSelectExercise(exercise.id)}
-                    onDoubleClick={() => onShowExerciseMuscles([...exercise.primaryMuscles, ...exercise.secondaryMuscles])}
+                    onClick={() => {
+                      if (multiExerciseSelection) {
+                        onToggleExerciseSelection(exercise.id);
+                        return;
+                      }
+
+                      onSelectExercise(exercise.id);
+                    }}
+                    onDoubleClick={() => {
+                      if (multiExerciseSelection) {
+                        onResetMultiExerciseSelection();
+                        return;
+                      }
+
+                      onShowExerciseMuscles([...exercise.primaryMuscles, ...exercise.secondaryMuscles]);
+                    }}
                     selected={selected}
                     sx={{
                       mb: 0.75,
